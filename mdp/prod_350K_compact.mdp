@@ -1,0 +1,63 @@
+; prod_350K_compact.mdp - Production MD at 350 K with reduced trajectory size
+; Output every 30 fs instead of 10 fs to reduce storage by ~3x
+; Target: ~50 GB trajectory instead of ~140 GB
+
+; Run parameters
+integrator  = md            ; Leap-frog integrator
+dt          = 0.002         ; 2 fs timestep
+nsteps      = 10000000      ; 20 ns (10,000,000 × 2 fs)
+
+; Output control - REDUCED FREQUENCY for smaller files
+nstlog      = 5000          ; Log every 10 ps
+nstenergy   = 5000          ; Energy every 10 ps
+nstxout     = 0             ; No full-precision coordinates
+nstvout     = 0             ; No velocities
+nstxout-compressed = 15     ; Compressed coords every 30 fs (15 × 2 fs)
+compressed-x-grps = System  ; Save all atoms
+
+; Neighbor searching
+cutoff-scheme = Verlet
+nstlist     = 20            ; Update neighbor list every 40 fs
+rlist       = 1.2           ; nm
+
+; Electrostatics (PME)
+coulombtype = PME
+rcoulomb    = 1.2           ; nm
+pme_order   = 4             ; Cubic interpolation
+fourierspacing = 0.12       ; nm
+
+; Van der Waals
+vdwtype     = Cut-off
+vdw-modifier = Potential-shift
+rvdw        = 1.2           ; nm
+DispCorr    = EnerPres      ; Long-range dispersion correction
+
+; Temperature coupling
+tcoupl      = V-rescale     ; Stochastic velocity rescaling
+tc-grps     = System        ; Single coupling group
+tau_t       = 0.5           ; Relaxed coupling (ps)
+ref_t       = 350           ; Target temperature (K)
+
+; Pressure coupling
+pcoupl          = Parrinello-Rahman
+pcoupltype      = isotropic
+tau_p           = 2.0       ; Time constant (ps)
+ref_p           = 1.0       ; Target pressure (bar)
+compressibility = 4.5e-5    ; Water compressibility (bar^-1)
+refcoord_scaling = com      ; Scale reference coordinates
+
+; Velocity generation
+gen_vel     = no            ; Continue from NPT equilibration
+
+; Periodic boundary conditions
+pbc         = xyz
+
+; Constraints
+constraints          = h-bonds
+constraint_algorithm = LINCS
+lincs_iter           = 2     ; Increased for better energy conservation
+lincs_order          = 4
+
+; Center of mass motion removal
+comm-mode   = Linear
+nstcomm     = 100           ; Remove COM motion every 200 fs

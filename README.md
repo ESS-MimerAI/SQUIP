@@ -1,6 +1,6 @@
 # SQUIP
 
-SQUIP is a proof-of-concept workflow for computing dynamic structure factors from peptide molecular dynamics simulations.
+SQUIP is a proof-of-concept workflow for computing dynamic structure factors from peptide molecular dynamics simulations, with a planned extension toward fitting machine-learning-based potentials that can rapidly estimate `S(q,w)` from amino-acid profiles across related water models and temperatures.
 
 The name stands for **S(q,w) QUalitative Investigation of Peptides**. The repository prepares small peptide systems, runs GROMACS molecular dynamics, post-processes production trajectories, and computes `S(q,w)` / `F(q,t)` for QENS-style analysis with Dynasor.
 
