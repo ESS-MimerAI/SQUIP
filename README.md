@@ -1,4 +1,11 @@
-# SQUIP
+<picture>
+  <source media="(prefers-color-scheme: dark)"
+          srcset="docs/branding/squip-logo-dark.svg">
+  <img src="docs/branding/squip-logo-light.svg"
+       alt="SQUIP: S(q,ω) qualitative investigation of peptides"
+       width="480">
+</picture>
+
 
 SQUIP is a proof-of-concept workflow for computing dynamic structure factors from peptide molecular dynamics simulations, with a planned extension toward fitting machine-learning-based potentials that can rapidly estimate `S(q,w)` from amino-acid profiles across related water models and temperatures.
 
