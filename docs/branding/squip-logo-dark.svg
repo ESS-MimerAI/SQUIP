@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 160" width="620" height="160" role="img" aria-label="SQUIP: S(q,omega) qualitative investigation of peptides">
+  <title>SQUIP</title>
+  <defs>
+    <linearGradient id="squip-curve-grad-d" x1="82" y1="96" x2="152" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4FBFC4"/>
+      <stop offset="1" stop-color="#F5A045"/>
+    </linearGradient>
+  </defs>
+
+  <!-- mark -->
+  <line x1="82" y1="112" x2="152" y2="112" stroke="#EAF4F3" stroke-opacity="0.22" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 6"/>
+  <g stroke="#4FBFC4" stroke-width="5" stroke-linecap="round">
+    <line x1="18" y1="128" x2="40" y2="106"/>
+    <line x1="40" y1="106" x2="60" y2="120"/>
+    <line x1="60" y1="120" x2="82" y2="96"/>
+  </g>
+  <path d="M82,96 C96,68 104,28 120,28 C136,28 142,70 152,112" fill="none" stroke="url(#squip-curve-grad-d)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <g stroke="#123A43" stroke-width="1.5">
+    <circle cx="18" cy="128" r="5" fill="#4FBFC4"/>
+    <circle cx="40" cy="106" r="7.5" fill="#4FBFC4"/>
+    <circle cx="60" cy="120" r="5" fill="#4FBFC4"/>
+    <circle cx="82" cy="96" r="7.5" fill="#4FBFC4"/>
+  </g>
+  <circle cx="120" cy="28" r="6" fill="#F5A045" stroke="#E0781F" stroke-width="1.5"/>
+
+  <!-- wordmark -->
+  <text x="196" y="98" font-family="'Segoe UI Semibold','Helvetica Neue',Arial,sans-serif" font-weight="800" font-size="70" letter-spacing="2" fill="#EAF4F3">SQUIP</text>
+  <text x="198" y="124" font-family="'Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',monospace" font-weight="600" font-size="16" letter-spacing="2" fill="#4FBFC4">S(q,&#969;) &#183; PEPTIDE DYNAMICS</text>
+</svg>
