@@ -2,15 +2,15 @@
 
 ## Purpose
 
-Before committing compute time and storage to the full SQUIP systems matrix, this document proposes a **single, minimal end-to-end run** of the pipeline: one peptide, one water model, one temperature. Its purpose is to let the project be evaluated on a working, measurable example rather than on projections alone.
+Before committing compute time and storage to the full SQUIP systems matrix, this document proposes a **single, minimal end-to-end run** of the pipeline: one peptide, one water model, one temperature. Its purpose is to let evaluate the project on a working, measurable example.
 
-Concretely, the playground run answers three questions for the committee:
+Concretely, the playground run answers three questions:
 
 1. **Does the pipeline work end-to-end**, from a starting structure file to a scientific result, without manual intervention?
-2. **What does one state point actually cost** in wall-clock time, storage, and operator effort — measured, not estimated?
-3. **Is the scientific output sane** — does it reproduce known water/peptide dynamics well enough to justify scaling up?
+2. **What does one state point actually cost** in wall-clock time, storage, and operator effort?
+3. **Is the scientific output sane**: does it reproduce known water/peptide dynamics well enough to justify scaling up?
 
-This is deliberately the smallest slice of the project that still exercises every stage of the workflow. It is not a scientific deliverable on its own; it is a go/no-go checkpoint.
+This is deliberately the smallest slice of the project that still involves every stage of the workflow. It is not a scientific deliverable on its own.
 
 ## Scope
 
@@ -23,7 +23,7 @@ This is deliberately the smallest slice of the project that still exercises ever
 | System size | ~50 solute molecules in a ~5.4 nm cubic box (~20,700 atoms, ~0.5 M) | Matches the concentration and box-size targets already validated for this system |
 | Production length | 20 ns, frames saved every 30 fs | The length judged necessary to resolve the quasi-elastic linewidths of interest |
 
-This single combination: **glycine / AMBER99SB-ILDN / TIP4P-Ew / 300 K** is already the system used as the project's reference walkthrough, so the playground run doubles as a live rehearsal of that documented procedure.
+This single combination: **glycine / AMBER99SB-ILDN / TIP4P-Ew / 300 K** is already the system used as the project's reference walkthrough.
 
 The full project scope (multiple peptides, force-field/water families, several temperatures) is described in the main [README.md](README.md); this document only covers the first of those 8 points, run in isolation.
 
@@ -49,10 +49,10 @@ Two short equilibration stages bring the system to the target thermodynamic stat
 - **NPT (100 ps):** pressure coupling is enabled to relax the box to the correct density at 1 bar.
 
 ### Stage 6: Production molecular dynamics
-A 50 ns production run in the NPT ensemble generates the trajectory used for analysis, with coordinates saved every 20 fs — the frame density required to resolve the quasi-elastic energy window of interest. This is the computationally dominant stage of the pipeline.
+A 50 ns production run in the NPT ensemble generates the trajectory used for analysis, with coordinates saved every 20 fs. The frame density required to resolve the quasi-elastic energy window of interest. This is the computationally dominant stage of the pipeline.
 
 ### Stage 7: Trajectory conditioning
-Raw production output requires two corrections before analysis: molecules split across periodic boundaries are stitched back together and re-centered in the box, and the fluctuating NPT box is re-imaged onto a single fixed cell, since the downstream scattering calculation assumes a constant simulation volume.
+Raw output requires two corrections before analysis: molecules split across periodic boundaries are stitched back together and re-centered in the box, and the fluctuating NPT box is re-imaged onto a single fixed cell, since the downstream scattering calculation assumes a constant simulation volume.
 
 ### Stage 8: Dynamic structure factor calculation
 The conditioned trajectory is passed through a Dynasor-based analysis that computes the coherent and incoherent dynamic structure factor `S(q,ω)` and intermediate scattering function `F(q,t)`, spherically averaged over momentum-transfer bins spanning the QENS-relevant q-range, with hydrogen atoms and force-field virtual sites (TIP4P-Ew's M-site) correctly handled.
@@ -64,14 +64,14 @@ A fully worked, command-level version of this same walkthrough already exists at
 
 ## Resource Requirements (Measured)
 
-The core cost driver is Stage 6 (production MD). Benchmarks already collected on this exact system give a concrete, non-speculative basis for approval:
+The core cost is Stage 6 (production MD). Benchmarks already collected on this exact system give some idea about the expected cost:
 
 | Resource | Measured value |
 | --- | --- |
 | Hardware | 12-core workstation CPU (Intel Xeon W-2265), no GPU |
-| Production wall time (50 ns) | ~12h |
+| Production wall time (20 ns) | ~12h |
 | Simulation throughput | ~101 ns/day |
-| Trajectory storage | ~1 TB (raw), before conditioning-stage copies |
+| Trajectory storage | ~200 GB (raw), before conditioning-stage copies |
 
 
 ## Success Criteria
