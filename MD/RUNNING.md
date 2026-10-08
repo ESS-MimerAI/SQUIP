@@ -298,7 +298,7 @@ python scripts/dynasor_scripts/extract_linewidths.py `
 ```
 
 Fits F_incoh(q,t) to a single exponential → Γ(q) in meV.
-Fits Γ vs q² (with q in Å⁻¹, **not** rad/Å) → self-diffusion coefficient D.
+Fits Γ vs q² → self-diffusion coefficient D (printed in cm²/s and m²/s). q is used exactly as Dynasor returns it: the angular wavevector in Å⁻¹ (often written rad/Å), which is the conventional neutron Q. It is **not** divided by 2π.
 
 ### 10c. Plot diagnostics
 

@@ -55,8 +55,8 @@ This plan uses option 1 by default and keeps option 2 as a documented fallback.
 
 - Dynasor internal length unit: Angstrom
 - Dynasor internal time unit: fs
-- q points returned by Dynasor are in rad/Angstrom (include 2*pi)
-- If you need q in 1/Angstrom for diffusion fits, use q_Ainv = q_rad_per_A / (2*pi)
+- q points returned by Dynasor are the angular wavevector |q| = 2*pi/lambda in 1/Angstrom (the Dynasor docs write this as rad/Angstrom; it is the conventional neutron Q)
+- Use q directly in diffusion fits, Gamma = hbar * D * q^2. Do NOT divide by 2*pi: that would inflate D by (2*pi)^2 ~ 39.5 and shift the q_max cutoff.
 
 ---
 
@@ -362,14 +362,13 @@ Verify that computed S(q,w) are physically reasonable and numerically stable.
 ### Objective
 Fit F_incoh(q,t) to extract Gamma(q) and estimate diffusion coefficients.
 
-### Critical Fix: q Units
-Dynasor returns q in rad/Angstrom. Convert to 1/Angstrom before using Gamma(q) = D * q^2.
+### Critical: q Units
+Dynasor returns the angular wavevector |q| in 1/Angstrom (written rad/Angstrom in the Dynasor docs). This is already the conventional neutron Q, so use it as-is in Gamma(q) = hbar * D * q^2. Do not divide by 2*pi.
 
 ### Implementation Notes
 
 ```python
-q_rad_per_A = q_norms
-q_Ainv = q_rad_per_A / (2 * np.pi)
+q_Ainv = q_norms  # already 1/Angstrom (angular wavevector); no 2*pi conversion
 q2 = q_Ainv ** 2
 ```
 
@@ -446,7 +445,7 @@ Global:
 ## Notes
 
 - QENS is dominated by incoherent H scattering; always compute incoherent part.
-- q points are in rad/Angstrom; convert to 1/Angstrom for diffusion fits.
+- q points are the angular wavevector in 1/Angstrom (rad/Angstrom); use them directly in diffusion fits, do not divide by 2*pi.
 - If you must use NPT trajectories for PoC, document the approximation explicitly.
 
 ---

@@ -7,7 +7,11 @@ import os
 import time
 
 from compute_sqw import compute_sqw_for_system
-from extract_linewidths import extract_linewidths, fit_diffusion_coefficient
+from extract_linewidths import (
+    extract_linewidths,
+    fit_diffusion_coefficient,
+    CM2_PER_S_TO_M2_PER_S,
+)
 from plot_sqw import plot_sqw_heatmap, plot_fqt_decay
 from export_hdf5 import export_to_hdf5
 
@@ -57,7 +61,9 @@ def run_analysis(systems, test_mode=False, allow_npt=False):
             q, gamma, gamma_err = extract_linewidths(npz)
             d = fit_diffusion_coefficient(q, gamma)
             results[prefix] = {"q": q, "gamma": gamma, "gamma_err": gamma_err, "D": d}
-            logger.info(f"  {prefix}: D = {d:.2e} cm^2/s")
+            logger.info(
+                f"  {prefix}: D = {d:.2e} cm^2/s = {d * CM2_PER_S_TO_M2_PER_S:.2e} m^2/s"
+            )
         except Exception as exc:
             logger.error(f"  {prefix}: FAILED - {exc}")
 

@@ -55,7 +55,7 @@ SQUIP means `S(q,w) QUalitative Investigation of Peptides`. The project is a pro
 ## Important Scientific/Technical Constraints
 
 - Dynasor assumes a fixed simulation cell. Prefer `prod_nvt_fixed.xtc` over raw NPT trajectories. Use `--allow-npt` only as an explicit approximation.
-- Dynasor q values are in rad/Angstrom. Convert to 1/Angstrom by dividing by `2*pi` before diffusion fits.
+- Dynasor q values are the angular wavevector |q| = 2π/λ in Å⁻¹ (the Dynasor docs write this as rad/Angstrom). This is already the conventional neutron Q, so use it directly in the diffusion fit Γ = ħ D q². Do **not** divide by `2*pi`; doing so inflates D by (2π)² ≈ 39.5.
 - MDAnalysis reads GROMACS coordinates in Angstrom. GROMACS command-line box dimensions are in nm. Be precise about unit conversions.
 - `dt` passed to Dynasor should be the original inter-frame timestep in fs. Do not multiply by `frame_step`; the custom wrapper exposes `frame_step` separately.
 - TIP4P-Ew virtual sites (`M`, `MW`, similar zero-mass sites) must be excluded from scattering groups. Use `scripts/build_element_groups.py` rather than ad hoc atom-name parsing.

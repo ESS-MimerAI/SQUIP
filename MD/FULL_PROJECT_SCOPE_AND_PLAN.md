@@ -121,7 +121,7 @@ Goal: turn scattered `*.npz` analysis outputs into a single, versioned, model-re
   - **Labels**: `Γ(q)` curve on a canonical q-grid, `D`, EISF, and a downsampled `S(q,ω)` / `F(q,t)` array on a canonical (q, ω) grid.
   - **Quality flags**: validation pass/fail, fit `R²`, statistical error bars.
 - **Storage**: HDF5 (`h5py`, already a dependency) or Parquet for the tabular features; keep large spectra in HDF5 with the scalars duplicated into a small tabular index for quick model iteration.
-- **Canonicalization**: a single resampling step guarantees all rows share identical q- and ω-grids (addresses A7). Units fixed at this boundary: q in 1/Å (convert from Dynasor's rad/Å by dividing by 2π), ω in meV, D in m²/s.
+- **Canonicalization**: a single resampling step guarantees all rows share identical q- and ω-grids (addresses A7). Units fixed at this boundary: q in Å⁻¹ (Dynasor's q is already the angular wavevector in Å⁻¹, often written rad/Å; use it directly and do not divide by 2π), ω in meV, D in m²/s.
 - **Deliverables**: `scripts/ml/build_dataset.py`, `data/squip_dataset.h5`, a dataset card documenting columns, units, and provenance.
 
 ### B.3 Phase B2 — Featurization (descriptor design)
@@ -240,7 +240,7 @@ Indicative phasing (effort, not calendar — gated by compute for data expansion
 | Inconsistent analysis outputs across runs | Corrupts dataset | A7 canonicalization gate before any ML work |
 | Descriptor doesn't generalize across peptides | Surrogate useless on new sequences | Grouped (leave-molecule-out) validation from day one; tiered descriptor escalation |
 | Compute/storage cost of expansion (~5 h + ~100 GB/point) | Slows B5 | Multi-fidelity short runs; downsample/delete trajectories post-analysis (keep `*_sqw_arrays.npz`); prioritize via active learning |
-| Unit/convention errors (rad/Å vs 1/Å, fs vs ps, nm vs Å) | Silent label corruption | Fix all units at the dataset boundary (B1); reuse existing conventions in [.github/github-instructions.md](.github/github-instructions.md) |
+| Unit/convention errors (dividing Dynasor's angular-wavevector q by 2π, fs vs ps, nm vs Å) | Silent label corruption (a spurious 2π division inflates D by ≈39.5) | Fix all units at the dataset boundary (B1); use Dynasor q directly in Γ = ħ D q² as documented in [.github/github-instructions.md](.github/github-instructions.md) |
 | Force-field-specific dynamics confound the model | Mixes two physical regimes | Treat water model/FF as an explicit categorical feature; consider per-family models |
 | Scope creep into full MLIP | Multiplies project size | Explicitly out of scope here; re-scope separately if intended |
 
