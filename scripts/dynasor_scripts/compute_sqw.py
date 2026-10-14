@@ -73,6 +73,98 @@ def _resolve_xtc(base, use_fixed_box, allow_npt):
     raise FileNotFoundError(f"Trajectory not found: {npt}")
 
 
+def compute_and_save_sqw(
+    traj,
+    dt_fs,
+    prefix,
+    output_dir,
+    q_max=2.5,
+    max_q_points=5000,
+    window_size=2000,
+    window_step=200,
+    num_q_bins=30,
+):
+    """Run Dynasor on an already-opened trajectory and write the npz outputs.
+
+    This is the Dynasor-and-save stage of :func:`compute_sqw_for_system`,
+    split out so that a synthetic trajectory (see
+    ``test_planted_truth_diffusion.py``) goes through exactly the same
+    q-point generation, spherical binning and ``*_sqw_arrays.npz`` layout
+    as production data.
+
+    Parameters
+    ----------
+    traj        : trajectory object with the Dynasor duck-typed interface
+                  (``cell``, ``atomic_indices``, iteration), e.g.
+                  :class:`GROMACSTrajectory`.
+    dt_fs       : time between consecutive frames of the *original*
+                  trajectory in fs (Dynasor multiplies by ``traj.frame_step``).
+    prefix      : output file prefix, e.g. ``glycine_amber99sb_300K``.
+    output_dir  : directory for the npz files (created if missing).
+
+    Returns
+    -------
+    (sample_averaged, arrays_npz_path)
+    """
+    os.makedirs(output_dir, exist_ok=True)
+
+    q_points = get_spherical_qpoints(
+        traj.cell,
+        q_max=q_max,
+        max_points=max_q_points,
+    )
+
+    logger.info(f"  Generated {len(q_points)} q-points (q_max={q_max} rad/Angstrom)")
+    logger.info("  Computing S(q,w) with:")
+    logger.info(f"    dt = {dt_fs:.3f} fs")
+    logger.info(f"    window_size = {window_size} frames = {window_size * dt_fs / 1000:.1f} ps")
+    logger.info(f"    window_step = {window_step} frames = {window_step * dt_fs / 1000:.1f} ps")
+    logger.info(
+        "    Frequency resolution: "
+        f"{2 * np.pi / (window_size * dt_fs) * radians_per_fs_to_meV:.4f} meV"
+    )
+    logger.info(f"    Nyquist frequency: {np.pi / dt_fs * radians_per_fs_to_meV:.1f} meV")
+
+    sample_raw = compute_dynamic_structure_factors(
+        traj,
+        q_points=q_points,
+        dt=dt_fs,
+        window_size=window_size,
+        window_step=window_step,
+        calculate_incoherent=True,
+    )
+
+    sample_averaged = get_spherically_averaged_sample_binned(sample_raw, num_q_bins=num_q_bins)
+
+    sample_neutron = _build_neutron_sample_or_none(
+        sample_averaged,
+        sample_raw.particle_counts,
+    )
+
+    omega_meV = sample_averaged.omega * radians_per_fs_to_meV
+
+    sample_raw.write_to_npz(os.path.join(output_dir, f"{prefix}_sqw_raw.npz"))
+    sample_averaged.write_to_npz(os.path.join(output_dir, f"{prefix}_sqw_averaged.npz"))
+    if sample_neutron is not None:
+        sample_neutron.write_to_npz(os.path.join(output_dir, f"{prefix}_sqw_neutron.npz"))
+
+    arrays_path = os.path.join(output_dir, f"{prefix}_sqw_arrays.npz")
+    np.savez(
+        arrays_path,
+        q_norms=sample_averaged.q_norms,
+        omega_rad_per_fs=sample_averaged.omega,
+        omega_meV=omega_meV,
+        time_fs=sample_averaged.time,
+        Sqw_coh=sample_averaged.Sqw_coh,
+        Sqw_incoh=sample_averaged.Sqw_incoh,
+        Fqt_coh=sample_averaged.Fqt_coh,
+        Fqt_incoh=sample_averaged.Fqt_incoh,
+    )
+
+    logger.info(f"  Complete: {prefix}")
+    return sample_averaged, arrays_path
+
+
 def compute_sqw_for_system(
     molecule,
     forcefield,
@@ -125,61 +217,17 @@ def compute_sqw_for_system(
         frame_stop=frame_stop,
     )
 
-    q_points = get_spherical_qpoints(
-        traj.cell,
-        q_max=q_max,
-        max_points=max_q_points,
-    )
-
-    logger.info(f"  Generated {len(q_points)} q-points (q_max={q_max} rad/Angstrom)")
-    logger.info("  Computing S(q,w) with:")
-    logger.info(f"    dt = {dt_fs:.3f} fs")
-    logger.info(f"    window_size = {window_size} frames = {window_size * dt_fs / 1000:.1f} ps")
-    logger.info(f"    window_step = {window_step} frames = {window_step * dt_fs / 1000:.1f} ps")
-    logger.info(
-        "    Frequency resolution: "
-        f"{2 * np.pi / (window_size * dt_fs) * radians_per_fs_to_meV:.4f} meV"
-    )
-    logger.info(f"    Nyquist frequency: {np.pi / dt_fs * radians_per_fs_to_meV:.1f} meV")
-
-    sample_raw = compute_dynamic_structure_factors(
+    prefix = f"{molecule}_{forcefield}_{temperature}"
+    sample_averaged, _ = compute_and_save_sqw(
         traj,
-        q_points=q_points,
-        dt=dt_fs,
+        dt_fs,
+        prefix,
+        output_dir,
+        q_max=q_max,
+        max_q_points=max_q_points,
         window_size=window_size,
         window_step=window_step,
-        calculate_incoherent=True,
     )
-
-    num_q_bins = 30
-    sample_averaged = get_spherically_averaged_sample_binned(sample_raw, num_q_bins=num_q_bins)
-
-    sample_neutron = _build_neutron_sample_or_none(
-        sample_averaged,
-        sample_raw.particle_counts,
-    )
-
-    omega_meV = sample_averaged.omega * radians_per_fs_to_meV
-
-    prefix = f"{molecule}_{forcefield}_{temperature}"
-    sample_raw.write_to_npz(os.path.join(output_dir, f"{prefix}_sqw_raw.npz"))
-    sample_averaged.write_to_npz(os.path.join(output_dir, f"{prefix}_sqw_averaged.npz"))
-    if sample_neutron is not None:
-        sample_neutron.write_to_npz(os.path.join(output_dir, f"{prefix}_sqw_neutron.npz"))
-
-    np.savez(
-        os.path.join(output_dir, f"{prefix}_sqw_arrays.npz"),
-        q_norms=sample_averaged.q_norms,
-        omega_rad_per_fs=sample_averaged.omega,
-        omega_meV=omega_meV,
-        time_fs=sample_averaged.time,
-        Sqw_coh=sample_averaged.Sqw_coh,
-        Sqw_incoh=sample_averaged.Sqw_incoh,
-        Fqt_coh=sample_averaged.Fqt_coh,
-        Fqt_incoh=sample_averaged.Fqt_incoh,
-    )
-
-    logger.info(f"  Complete: {prefix}")
     return sample_averaged
 
 
