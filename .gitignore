@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+tests/test_output/
+
+# GROMACS run by-products
+# Trajectories are tens of GB each and live on the workstation, not in git.
+*.xtc
+*.trr
+*.tng
+mdout.mdp
+\#*#
+step*.pdb
+
+# TaskBlaster runtime state
+workflow/taskblaster/.taskblaster/registry.db
+
+# Private collaboration/funding material awaiting transfer to a private repo
+TO_MOVE/
